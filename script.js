@@ -7,14 +7,18 @@ let ready = false;
 let imagesLoaded = 0;
 let totalImages = 0;
 let photosArray = [];
-let initialLoad = true;
+let isInitialLoad = true;
 
 // Unsplash API
 const query = "dogs";
-const imageCount = 5;
+const initialCount = 5;
 const apiKey =
   "82546cb4b2c6e97dc19878497a67265f6627936b0240b7285d97ba7cbba87b1e";
-const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&query=${query}&count=${count}`;
+const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&query=${query}&count=${initialCount}`;
+
+const updateApiUrlWithNewCount = (newCount) => {
+  apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&query=${query}&count=${newCount}`;
+};
 
 // Check if all images were loaded
 const imageLoaded = () => {
@@ -23,7 +27,6 @@ const imageLoaded = () => {
   if (imagesLoaded == totalImages) {
     ready = true;
     loader.hidden = true;
-    initialLoad ? (initialLoad = !initialLoad) : (imageCount = 30);
   }
 };
 
@@ -85,6 +88,11 @@ const getPhotos = async () => {
     photosArray = await response.json();
 
     displayPhotos(photosArray);
+
+    if (isInitialLoad) {
+      updateApiUrlWithNewCount(30);
+      isInitialLoad = false;
+    }
   } catch (error) {}
 };
 
