@@ -3,6 +3,9 @@
 const imageContainer = document.getElementById("image-container");
 const loader = document.getElementById("loader");
 
+let ready = false;
+let imagesLoaded = 0;
+let totalImages = 0;
 let photosArray = [];
 
 // Unsplash API
@@ -12,16 +15,29 @@ const apiKey =
   "82546cb4b2c6e97dc19878497a67265f6627936b0240b7285d97ba7cbba87b1e";
 const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&query=${query}&count=${count}`;
 
+// Check if all images were loaded
+const imageLoaded = () => {
+  imagesLoaded++;
+
+  if (imagesLoaded == totalImages) {
+    ready = true;
+    loader.hidden = true;
+  }
+};
+
 // Helper Function to Set Attributes on DOM Elements
 // Only needed for Option #2
-function setAttributes(element, attributes) {
+const setAttributes = (element, attributes) => {
   for (const key in attributes) {
     element.setAttribute(key, attributes[key]);
   }
-}
+};
 
 // Create Elements For Links & Photos, Add to DOM
 const displayPhotos = (arr) => {
+  imagesLoaded = 0;
+  totalImages = photosArray.length;
+
   // Run function for each object in arr
   arr.forEach((photo) => {
     // Option #1
@@ -43,8 +59,6 @@ const displayPhotos = (arr) => {
       target: "_blank",
     });
 
-    console.log(item);
-
     // Create <img> for photo
     const img = document.createElement("img");
     setAttributes(img, {
@@ -53,6 +67,9 @@ const displayPhotos = (arr) => {
       title: photo.alt_description,
     });
 
+    // Event Listener, check when each is finished loading
+    img.addEventListener("load", imageLoaded);
+
     // Put <img> inside <a>, then put both inside imageContainer element
     item.appendChild(img);
     imageContainer.appendChild(item);
@@ -60,14 +77,24 @@ const displayPhotos = (arr) => {
 };
 
 // Get photos from Unsplash API
-async function getPhotos() {
+const getPhotos = async () => {
   try {
     const response = await fetch(apiUrl);
     photosArray = await response.json();
 
     displayPhotos(photosArray);
   } catch (error) {}
-}
+};
 
+// Check to see if scrolling near bottom of page, Load More Photos
+window.addEventListener("scroll", () => {
+  if (
+    window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000 &&
+    ready
+  ) {
+    ready = false;
+    getPhotos();
+  }
+});
 // On Load
 getPhotos();
